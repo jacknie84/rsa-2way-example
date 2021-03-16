@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task createKeystore(type: Exec) {
+    group = 'keystore'
+    def commonName = 'Unknown'
+    def orgUnit = 'Unknown'
+    def org = 'Unknown'
+    def location = 'Unknown'
+    def state = 'Unknown'
+    def countryCode = 'Unknown'
+    def keystore = project.rootDir.toPath().resolve('.keystore')
+    def dname = "CN=$commonName, OU=$orgUnit, O=$org, L=$location, ST=$state, C=$countryCode"
+    def storepass = 'INSERT_YOUR_KEYSTORE_PASSWORD'
+    def keypass = storepass
+    def storetype = 'PKCS12'
+    def alias = 'INSERT_YOUR_ALIAS'
+    def keyalg = 'RSA'
+    def keysize = 2048
+    def validity = 365
+    def keytool = "keytool -genkey -dname \"$dname\" -keystore $keystore -alias $alias -storetype $storetype -keyalg $keyalg -keysize $keysize -keypass $keypass -storepass $storepass -validity $validity -v"
+    commandLine 'cmd', '/c', keytool
+}
+
+task exportCert(type: Exec) {
+    group = 'keystore'
+    def alias = 'INSERT_YOUR_ALIAS'
+    def keystore = project.rootDir.toPath().resolve('.keystore')
+    def file = project.rootDir.toPath().resolve('cert.pem')
+    def storepass = 'INSERT_YOUR_KEYSTORE_PASSWORD'
+    def storetype = 'PKCS12'
+    def keytool = "keytool -exportcert -rfc -alias $alias -keystore $keystore -file $file -storepass $storepass -storetype $storetype -v"
+    commandLine 'cmd', '/c', keytool
+}
